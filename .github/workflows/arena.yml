@@ -1,0 +1,37 @@
+name: Arena Leaderboard Notifier
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # 毎日UTC 0:00 = 日本時間9:00
+  workflow_dispatch:       # 手動実行ボタンも有効化
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm i playwright
+          npx playwright install --with-deps chromium
+
+      - name: Take screenshot
+        run: node shot.js
+
+      - name: Upload screenshot to Slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          curl -F file=@arena.png \
+               -F channels=$SLACK_CHANNEL_ID \
+               -F initial_comment="📊 Arena Leaderboard 更新チェック" \
+               -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+               https://slack.com/api/files.upload
