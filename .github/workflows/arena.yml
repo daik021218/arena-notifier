@@ -25,13 +25,12 @@ jobs:
       - name: Take screenshot
         run: node shot.js
 
-      - name: Upload screenshot to Slack
+- name: Notify Slack (text only)
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
-          curl -F file=@arena.png \
-               -F channels=$SLACK_CHANNEL_ID \
-               -F initial_comment="📊 Arena Leaderboard 更新チェック" \
-               -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-               https://slack.com/api/files.upload
+          curl -X POST -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+               -H "Content-type: application/json; charset=utf-8" \
+               --data "{\"channel\":\"$SLACK_CHANNEL_ID\",\"text\":\"📊 Arena Leaderboard 更新チェック https://arena.ai/leaderboard\"}" \
+               https://slack.com/api/chat.postMessage
