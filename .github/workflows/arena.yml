@@ -25,12 +25,15 @@ jobs:
       - name: Take screenshot
         run: node shot.js
 
-- name: Notify Slack (text only)
+      - name: Take screenshot
+        run: node shot.js
+
+      - name: Notify Slack (text only)
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
           curl -X POST -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-               -H "Content-type: application/json; charset=utf-8" \
-               --data "{\"channel\":\"$SLACK_CHANNEL_ID\",\"text\":\"📊 Arena Leaderboard 更新チェック https://arena.ai/leaderboard\"}" \
-               https://slack.com/api/chat.postMessage
+            -H "Content-type: application/json; charset=utf-8" \
+            --data "{\"channel\":\"$SLACK_CHANNEL_ID\",\"text\":\"📊 Arena Leaderboard 更新チェック https://arena.ai/leaderboard\"}" \
+            https://slack.com/api/chat.postMessage
