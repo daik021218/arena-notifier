@@ -23,7 +23,6 @@ jobs:
       - name: Take screenshot of Arena Leaderboard
         run: |
           node -e "const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const c=await b.newContext({viewport:{width:1440,height:900},deviceScaleFactor:2});const p=await c.newPage();await p.goto('https://arena.ai/leaderboard',{waitUntil:'networkidle',timeout:60000});await p.waitForTimeout(3000);await p.screenshot({path:'arena.png',fullPage:true});await b.close();})();"
-          ls -la arena.png
 
       - name: Upload screenshot to Slack
         env:
@@ -35,12 +34,12 @@ jobs:
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             --data-urlencode "filename=arena.png" \
             --data-urlencode "length=$FILE_SIZE")
-          echo "getUploadURLExternal=$GET_URL_RES"
           UPLOAD_URL=$(echo "$GET_URL_RES" | jq -r .upload_url)
           FILE_ID=$(echo "$GET_URL_RES" | jq -r .file_id)
-          curl -sS -X POST "$UPLOAD_URL" -F "file=@arena.png"
-          COMPLETE_RES=$(curl -sS -X POST "https://slack.com/api/files.completeUploadExternal" \
+          curl -sS -o /dev/null -X POST "$UPLOAD_URL" -F "file=@arena.png"
+          COMPLETE_OK=$(curl -sS -X POST "https://slack.com/api/files.completeUploadExternal" \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-type: application/json; charset=utf-8" \
-            --data "{\"files\":[{\"id\":\"$FILE_ID\",\"title\":\"Arena Leaderboard\"}],\"channel_id\":\"$SLACK_CHANNEL_ID\",\"initial_comment\":\"[chart] Arena Leaderboard 更新チェック https://arena.ai/leaderboard\"}")
-          echo "completeUploadExternal=$COMPLETE_RES"            
+            --data "{\"files\":[{\"id\":\"$FILE_ID\",\"title\":\"Arena Leaderboard\"}],\"channel_id\":\"$SLACK_CHANNEL_ID\",\"initial_comment\":\"[chart] Arena Leaderboard 更新チェック https://arena.ai/leaderboard\"}" | jq -r .ok)
+          echo "slack_upload_ok=$COMPLETE_OK"
+          test "$COMPLETE_OK" = "true"          
