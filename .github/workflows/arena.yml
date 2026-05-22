@@ -2,14 +2,24 @@ name: Arena Leaderboard Notifier
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # 毎日UTC 0:00 = 日本時間9:00
-  workflow_dispatch:      # 手動実行ボタンも有効化
+    - cron: "0 0 * * *"
+  workflow_dispatch:
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Debug channel id prefix/length
+        env:
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          echo "channel_len=${#SLACK_CHANNEL_ID}"
+          echo "channel_prefix=${SLACK_CHANNEL_ID:0:1}"
+          echo "token_len=${#SLACK_BOT_TOKEN}"
+          echo "token_prefix=${SLACK_BOT_TOKEN:0:4}"
 
       - name: Notify Slack (text only)
         env:
@@ -19,4 +29,4 @@ jobs:
           curl -X POST -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-type: application/json; charset=utf-8" \
             --data "{\"channel\":\"$SLACK_CHANNEL_ID\",\"text\":\"[chart] Arena Leaderboard 更新チェック https://arena.ai/leaderboard\"}" \
-            https://slack.com/api/chat.postMessage
+            https://slack.com/api/chat.postMessage            
