@@ -22,33 +22,13 @@ jobs:
           (async () => {
             const browser = await chromium.launch();
             const context = await browser.newContext({
-              viewport: { width: 1440, height: 900 },
+              viewport: { width: 1440, height: 1500 },
               deviceScaleFactor: 2,
             });
             const page = await context.newPage();
-            await page.goto('https://arena.ai/leaderboard', { waitUntil: 'networkidle', timeout: 60000 });
+            await page.goto('https://arena.ai/leaderboard/text', { waitUntil: 'networkidle', timeout: 60000 });
             await page.waitForTimeout(3000);
-
-            // 一度ページ下端までスクロールして全カテゴリ(Agent/Chat/Code/Image/Video)を描画させる
-            await page.evaluate(async () => {
-              await new Promise((resolve) => {
-                let total = 0, ticks = 0;
-                const step = 400;
-                const timer = setInterval(() => {
-                  window.scrollBy(0, step);
-                  total += step;
-                  ticks++;
-                  if (total >= document.body.scrollHeight || ticks > 60) {
-                    clearInterval(timer);
-                    window.scrollTo(0, 0);
-                    resolve();
-                  }
-                }, 200);
-              });
-            });
-            await page.waitForTimeout(2000);
-
-            await page.screenshot({ path: 'arena.png', fullPage: true });
+            await page.screenshot({ path: 'arena.png', fullPage: false });
             await browser.close();
             console.log('Screenshot saved.');
           })();
@@ -70,6 +50,6 @@ jobs:
           COMPLETE_OK=$(curl -sS -X POST "https://slack.com/api/files.completeUploadExternal" \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-type: application/json; charset=utf-8" \
-            --data "{\"files\":[{\"id\":\"$FILE_ID\",\"title\":\"Arena Leaderboard\"}],\"channel_id\":\"$SLACK_CHANNEL_ID\",\"initial_comment\":\"📊 Arena Leaderboard 更新チェック https://arena.ai/leaderboard\"}" | jq -r .ok)
+            --data "{\"files\":[{\"id\":\"$FILE_ID\",\"title\":\"Arena Text Leaderboard\"}],\"channel_id\":\"$SLACK_CHANNEL_ID\",\"initial_comment\":\"📊 Arena テキストランキング 更新チェック https://arena.ai/leaderboard/text\"}" | jq -r .ok)
           echo "slack_upload_ok=$COMPLETE_OK"
           test "$COMPLETE_OK" = "true"
